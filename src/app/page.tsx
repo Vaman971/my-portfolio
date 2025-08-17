@@ -1,7 +1,23 @@
-export default function Page() {
+import Navbar from "@/sections/Navbar";
+import Hero from "@/sections/Hero";
+import About from "@/sections/About";
+import Skills from "@/sections/Skills";
+import Project from "@/sections/Project";
+import Experience from "@/sections/Experience";
+import Contact from "@/sections/Contact";
+import Footer from "@/sections/Footer";
+
+export default function HomePage() {
   return (
-    <main className="min-h-screen flex items-center justify-center px-6">
-      <h1 className="text-6xl font-extrabold">My Portfolio - Aman Verma</h1>
-    </main>
+    <>
+      <Navbar />
+      <Hero />
+      <About />
+      <Skills />
+      <Experience />
+      <Project />
+      <Contact />
+      <Footer />
+    </>
   );
 }
