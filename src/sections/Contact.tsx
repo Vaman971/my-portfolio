@@ -192,7 +192,7 @@ export default function Contact() {
 
           <motion.button
             type="submit"
-            className="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50"
+            className="bg-primary text-white dark:text-black px-6 py-3 rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50"
             whileHover={{ scale: loading ? 1 : 1.05 }}
             whileTap={{ scale: loading ? 1 : 0.95 }}
             disabled={loading}
