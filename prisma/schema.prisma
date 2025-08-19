@@ -27,6 +27,7 @@ model SiteConfig {
   tagline   String?
   socials   Json?
   theme     Json?
+  cvUrl     String?
 }
 
 model About {

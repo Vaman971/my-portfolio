@@ -1,7 +1,22 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { FaGithub, FaLinkedin, FaEnvelope } from "react-icons/fa";
+import { set } from "zod";
+
+interface SiteConfig {
+  id?: string;
+  ownerName: string;
+  title: string;
+  socials?: Record<string, string>;
+};
+
+interface Socials {
+  github?: string;
+  linkedin?: string;
+  email?: string;
+}
 
 export default function Footer() {
   const navLinks = [
@@ -12,6 +27,26 @@ export default function Footer() {
     { href: "#experience", label: "Experience" },
     { href: "#contact", label: "Contact" },
   ];
+
+  const [config, setConfig] = useState<SiteConfig | null>(null);
+  const [socials, setSocials] = useState<Socials | null>(null);
+
+
+  // 🔹 Fetch site-config once
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        const res = await fetch("/api/site-config");
+        const data = await res.json();
+        setConfig(data);
+        setSocials(data?.socials || {});
+      } catch (err) {
+        console.error("Failed to fetch site config:", err);
+      }
+    }
+    fetchConfig();
+  }, []);
+
 
   return (
     <footer className="bg-gray-900 text-gray-300 py-10 mt-20">
@@ -24,8 +59,8 @@ export default function Footer() {
       >
         {/* Left side - Name & Role */}
         <div className="text-center md:text-left">
-          <h3 className="text-lg font-semibold text-white">Aman Verma</h3>
-          <p className="text-sm text-gray-400">Full-Stack Developer</p>
+          <h3 className="text-lg font-semibold text-white">{config?.ownerName}</h3>
+          <p className="text-sm text-gray-400">{config?.title}</p>
         </div>
 
         {/* Middle - Navigation */}
@@ -43,34 +78,40 @@ export default function Footer() {
 
         {/* Right side - Social Icons */}
         <div className="flex gap-5 text-lg">
-          <a
-            href="https://github.com/your-github"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-white transition-colors"
-          >
-            <FaGithub />
-          </a>
-          <a
-            href="https://linkedin.com/in/your-linkedin"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-white transition-colors"
-          >
-            <FaLinkedin />
-          </a>
-          <a
-            href="mailto:your-email@example.com"
-            className="hover:text-white transition-colors"
-          >
-            <FaEnvelope />
-          </a>
+          {socials?.github && (
+            <a
+              href={socials?.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors"
+            >
+              <FaGithub />
+            </a>
+          )}
+          {socials?.linkedin && (
+            <a
+              href={socials?.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white transition-colors"
+            >
+              <FaLinkedin />
+            </a>
+          )}
+          {socials?.email && (
+            <a
+              href={`mailto:${socials?.email}`}
+              className="hover:text-white transition-colors"
+            >
+              <FaEnvelope />
+            </a>
+          )}
         </div>
       </motion.div>
 
       {/* Bottom line */}
       <div className="mt-8 text-center text-xs text-gray-500 border-t border-gray-700 pt-4">
-        © {new Date().getFullYear()} Aman Verma. Built with{" "}
+        © {new Date().getFullYear()} {config?.ownerName}. Built with{" "}
         <span className="text-white">Next.js</span> &{" "}
         <span className="text-white">Tailwind CSS</span>.
       </div>

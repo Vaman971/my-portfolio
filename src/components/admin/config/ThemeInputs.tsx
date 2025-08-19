@@ -10,11 +10,15 @@ type Props = {
 };
 
 export default function ThemeInputs({ theme, onChange }: Props) {
-  const color = theme?.primaryColor ?? "#3b82f6";
+  const primary = theme?.primaryColor ?? "#3b82f6";
+  const secondary = theme?.secondaryColor ?? "#f97316";
+  // const background = theme?.backgroundColor ?? "#ffffff";
+  // const text = theme?.textColor ?? "#111827";
   const mode = theme?.mode ?? "light";
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-6">
+      {/* Dark Mode */}
       <div className="flex items-center justify-between rounded-lg border p-3">
         <div>
           <Label>Dark mode</Label>
@@ -26,35 +30,61 @@ export default function ThemeInputs({ theme, onChange }: Props) {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label>Primary color</Label>
-        <div className="flex items-center gap-3">
-          <input
-            type="color"
-            className="h-10 w-14 cursor-pointer rounded-md border"
-            value={color}
-            onChange={(e) => onChange("primaryColor", e.target.value)}
-            aria-label="Primary color"
-          />
-          <span className="text-sm text-muted-foreground">{color}</span>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+      {/* Primary color */}
+      <ColorPicker
+        label="Primary color"
+        value={primary}
+        onChange={(val) => onChange("primaryColor", val)}
+      />
+
+      {/* Secondary color */}
+      <ColorPicker
+        label="Secondary color"
+        value={secondary}
+        onChange={(val) => onChange("secondaryColor", val)}
+      />
+
+      {/* Background color */}
+      {/* <ColorPicker
+        label="Background color"
+        value={background}
+        onChange={(val) => onChange("backgroundColor", val)}
+      /> */}
+
+      {/* Text color */}
+      {/* <ColorPicker
+        label="Text color"
+        value={text}
+        onChange={(val) => onChange("textColor", val)}
+      /> */}
+    </div>
+    </div>
+  );
+}
+
+function ColorPicker({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div className="flex items-center gap-3">
+        <input
+          type="color"
+          className="h-10 w-14 cursor-pointer rounded-md border"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label={label}
+        />
+        <span className="text-sm text-muted-foreground">{value}</span>
+      </div>
+      <div className="mt-3 flex items-center gap-3">
+        <div
+          className={cn("rounded-md px-3 py-1 text-xs font-medium border")}
+          style={{ backgroundColor: value, color: "#fff", borderColor: value }}
+        >
+          Example
         </div>
-        <div className="mt-3 flex items-center gap-3">
-          <span className="text-xs text-muted-foreground">Preview:</span>
-          <div
-            className={cn(
-              "rounded-md px-3 py-1 text-xs font-medium",
-              "border"
-            )}
-            style={{ backgroundColor: color, color: "#fff", borderColor: color }}
-          >
-            Primary Button
-          </div>
-          <div className="rounded-md border px-3 py-1 text-xs">Outline Button</div>
-          <div
-            className="rounded-full h-4 w-4 border"
-            style={{ backgroundColor: color, borderColor: color }}
-          />
-        </div>
+        <div className="rounded-full h-4 w-4 border" style={{ backgroundColor: value, borderColor: value }} />
       </div>
     </div>
   );

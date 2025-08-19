@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import * as configService from "@/services/config";
 import SectionCard from "./config/SectionCard";
 import ConfigForm from "./config/ConfigForm";
@@ -18,108 +18,109 @@ type SiteConfig = {
     tagline?: string;
     socials?: Record<string, string>;
     theme?: Record<string, any>;
+    cvUrl?: string; // ✅ new field
 };
 
 export default function ConfigAdminClient() {
-    const [config, setConfig] = useState<SiteConfig | null>(null);
-    const [form, setForm] = useState<SiteConfig>({
+  const [config, setConfig] = useState<SiteConfig | null>(null);
+  const [form, setForm] = useState<SiteConfig>({
+    ownerName: "",
+    title: "",
+    tagline: "",
+    socials: { github: "", linkedin: "", email: "" },
+    theme: { mode: "light", primaryColor: "#3b82f6" },
+    cvUrl: "",
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await configService.fetchConfig();
+        if (data && Object.keys(data).length) {
+          setConfig(data);
+          setForm({
+            ownerName: data.ownerName ?? "",
+            title: data.title ?? "",
+            tagline: data.tagline ?? "",
+            socials: data.socials ?? {
+              github: "",
+              linkedin: "",
+              email: "",
+            },
+            theme: data.theme ?? { mode: "light", primaryColor: "#3b82f6" },
+            id: data.id,
+            cvUrl: data.cvUrl ?? "",
+          });
+        }
+      } catch {
+        toast.error("Error fetching config");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const onChange = (key: keyof SiteConfig, value: any) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
+
+  const onSocialChange = (key: string, value: string) =>
+    setForm((prev) => ({
+      ...prev,
+      socials: { ...(prev.socials || {}), [key]: value },
+    }));
+
+  const onThemeChange = (key: string, value: any) =>
+    setForm((prev) => ({
+      ...prev,
+      theme: { ...(prev.theme || {}), [key]: value },
+    }));
+
+  const handleSave = async () => {
+    if (!form.ownerName || !form.title) {
+      toast.error("Owner name and title are required.");
+      return;
+    }
+    setSaving(true);
+    try {
+      if (config?.id) {
+        const updated = await configService.updateConfig(config.id, form);
+        setConfig(updated);
+        toast.success("Config updated successfully");
+      } else {
+        const created = await configService.createConfig(form);
+        setConfig(created);
+        toast.success("Config created successfully");
+      }
+    } catch {
+      toast.error("Failed to save config");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!config?.id) return;
+    if (!confirm("Delete the site config? This cannot be undone.")) return;
+    setSaving(true);
+    try {
+      await configService.deleteConfig(config.id);
+      setConfig(null);
+      setForm({
         ownerName: "",
         title: "",
         tagline: "",
         socials: { github: "", linkedin: "", email: "" },
         theme: { mode: "light", primaryColor: "#3b82f6" },
-    });
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-
-    useEffect(() => {
-        (async () => {
-            try {
-                const data = await configService.fetchConfig();
-                if (data && Object.keys(data).length) {
-                    setConfig(data);
-                    setForm({
-                        ownerName: data.ownerName ?? "",
-                        title: data.title ?? "",
-                        tagline: data.tagline ?? "",
-                        socials: data.socials ?? { github: "", linkedin: "", email: "" },
-                        theme: data.theme ?? { mode: "light", primaryColor: "#3b82f6" },
-                        id: data.id,
-                    });
-                }
-            } catch {
-                toast({ title: "Error fetching config", variant: "destructive" });
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, []);
-
-    const onChange = (key: keyof SiteConfig, value: any) =>
-        setForm((prev) => ({ ...prev, [key]: value }));
-
-    const onSocialChange = (key: string, value: string) =>
-        setForm((prev) => ({ ...prev, socials: { ...(prev.socials || {}), [key]: value } }));
-
-    const onThemeChange = (key: string, value: any) =>
-        setForm((prev) => ({ ...prev, theme: { ...(prev.theme || {}), [key]: value } }));
-
-    const handleSave = async () => {
-        if (!form.ownerName || !form.title) {
-            toast({ title: "Owner name and title are required.", variant: "destructive" });
-            return;
-        }
-        setSaving(true);
-        try {
-            if (config?.id) {
-                const updated = await configService.updateConfig(config.id, form);
-                setConfig(updated);
-                toast({ title: "Config updated successfully" });
-            } else {
-                const created = await configService.createConfig(form);
-                setConfig(created);
-                toast({ title: "Config created successfully" });
-            }
-        } catch {
-            toast({ title: "Failed to save config", variant: "destructive" });
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (!config?.id) return;
-        if (!confirm("Delete the site config? This cannot be undone.")) return;
-        setSaving(true);
-        try {
-            await configService.deleteConfig(config.id);
-            setConfig(null);
-            setForm({
-                ownerName: "",
-                title: "",
-                tagline: "",
-                socials: { github: "", linkedin: "", email: "" },
-                theme: { mode: "light", primaryColor: "#3b82f6" },
-            });
-            toast({ title: "Config deleted" });
-        } catch {
-            toast({ title: "Failed to delete config", variant: "destructive" });
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="space-y-4">
-                <div className="h-8 w-48 bg-muted rounded animate-pulse" />
-                <div className="grid gap-6 md:grid-cols-2">
-                    <div className="h-64 bg-muted rounded animate-pulse" />
-                    <div className="h-64 bg-muted rounded animate-pulse" />
-                </div>
-            </div>
-        );
+      });
+      toast.success("Config deleted");
+    } catch {
+      toast.error("Failed to delete config");
+    } finally {
+      setSaving(false);
     }
+  };
 
     return (
         <div className="space-y-6">
@@ -134,7 +135,7 @@ export default function ConfigAdminClient() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Left column: inputs */}
-                <ScrollArea  className="h-[calc(100vh-8rem)] pr-2">
+                <ScrollArea className="h-[calc(100vh-8rem)] pr-2">
                     <SectionCard
                         title="Basic information"
                         description="Owner profile and site title/tagline."
@@ -165,6 +166,7 @@ export default function ConfigAdminClient() {
                         tagline={form.tagline}
                         socials={form.socials}
                         theme={form.theme}
+                        cvUrl={form.cvUrl}
                     />
                     <ConfigActions
                         saving={saving}

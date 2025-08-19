@@ -12,6 +12,12 @@ interface FormData {
   honeypot: string; // hidden anti-spam
 }
 
+interface SiteConfig {
+  github?: string;
+  linkedin?: string;
+  email?: string;
+}
+
 export default function Contact() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -20,8 +26,23 @@ export default function Contact() {
     honeypot: "",
   });
 
+  const [config, setConfig] = useState<SiteConfig | null>(null);
   const [loading, setLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null); // <-- added for testing
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  
+  // 🔹 Fetch site-config once
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        const res = await fetch("/api/site-config");
+        const data = await res.json();
+        setConfig(data?.socials);
+      } catch (err) {
+        console.error("Failed to fetch site config:", err);
+      }
+    }
+    fetchConfig();
+  }, []);
 
   // Load reCAPTCHA script once (optional)
   useEffect(() => {
@@ -62,15 +83,15 @@ export default function Contact() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setStatusMessage("Message sent successfully!"); // <-- added for test
+        setStatusMessage("Message sent successfully!");
         toast.success("Message sent successfully!");
         setFormData({ name: "", email: "", message: "", honeypot: "" });
       } else {
-        setStatusMessage(data.error || "Failed to send message."); // <-- added for test
+        setStatusMessage(data.error || "Failed to send message.");
         toast.error(data.error || "Failed to send message.");
       }
     } catch (err) {
-      setStatusMessage("Something went wrong. Please try again."); // <-- added for test
+      setStatusMessage("Something went wrong. Please try again.");
       toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -98,33 +119,40 @@ export default function Contact() {
           viewport={{ once: true }}
         >
           <p className="text-lg text-muted-foreground mb-6">
-            I’m always open to discussing new opportunities, collaborations, or sharing ideas.
-            Drop me a message and I’ll get back to you as soon as possible.
+            I’m always open to discussing new opportunities, collaborations, or
+            sharing ideas. Drop me a message and I’ll get back to you as soon as
+            possible.
           </p>
 
           <div className="flex gap-6 mt-6">
-            <a
-              href="https://github.com/your-github"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-2xl hover:text-primary transition-colors"
-            >
-              <FaGithub />
-            </a>
-            <a
-              href="https://linkedin.com/in/your-linkedin"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-2xl hover:text-primary transition-colors"
-            >
-              <FaLinkedin />
-            </a>
-            <a
-              href="mailto:your-email@example.com"
-              className="text-2xl hover:text-primary transition-colors"
-            >
-              <FaEnvelope />
-            </a>
+            {config?.github && (
+              <a
+                href={config.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-2xl hover:text-primary transition-colors"
+              >
+                <FaGithub />
+              </a>
+            )}
+            {config?.linkedin && (
+              <a
+                href={config.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-2xl hover:text-primary transition-colors"
+              >
+                <FaLinkedin />
+              </a>
+            )}
+            {config?.email && (
+              <a
+                href={`mailto:${config.email}`}
+                className="text-2xl hover:text-primary transition-colors"
+              >
+                <FaEnvelope />
+              </a>
+            )}
           </div>
         </motion.div>
 
@@ -142,7 +170,9 @@ export default function Contact() {
             type="text"
             name="honeypot"
             value={formData.honeypot}
-            onChange={(e) => setFormData({ ...formData, honeypot: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, honeypot: e.target.value })
+            }
             className="hidden"
             autoComplete="off"
             tabIndex={-1}
@@ -171,7 +201,9 @@ export default function Contact() {
               id="email"
               className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               required
             />
           </div>
@@ -185,7 +217,9 @@ export default function Contact() {
               rows={4}
               className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary"
               value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, message: e.target.value })
+              }
               required
             />
           </div>
@@ -200,12 +234,13 @@ export default function Contact() {
             {loading ? "Sending..." : "Send Message"}
           </motion.button>
         </motion.form>
-          {/* Visible status for testing */}
-          {statusMessage && (
-            <p className="mt-4 text-sm text-green-500" role="status">
-              {statusMessage}
-            </p>
-          )}
+
+        {/* Visible status for testing */}
+        {statusMessage && (
+          <p className="mt-4 text-sm text-green-500" role="status">
+            {statusMessage}
+          </p>
+        )}
       </div>
     </section>
   );

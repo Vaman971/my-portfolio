@@ -16,8 +16,11 @@ export async function POST(req: Request) {
   const f = file as File;
 
   // Basic validation (you can tweak limits/types)
-  if (!f.type?.startsWith("image/")) {
-    return NextResponse.json({ error: "Only image files allowed" }, { status: 415 });
+  if (
+    !f.type?.startsWith("image/") &&
+    f.type !== "application/pdf"
+  ) {
+    return NextResponse.json({ error: "Only images or PDFs allowed" }, { status: 415 });
   }
   // e.g. 5 MB limit
   const maxSize = 5 * 1024 * 1024;
@@ -27,7 +30,7 @@ export async function POST(req: Request) {
   }
 
   // Give it a tidy path; addRandomSuffix prevents collisions
-  const filename = `projects/${Date.now()}-${f.name}`;
+  const filename = `uploads/${Date.now()}-${f.name}`;
 
   try {
     const blob = await put(filename, f, {

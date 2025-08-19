@@ -1,63 +1,50 @@
 "use client";
 
-import { motion, useAnimationControls } from "framer-motion";
-import { useState } from "react";
-import {
-  SiNextdotjs,
-  SiReact,
-  SiTypescript,
-  SiTailwindcss,
-  SiNodedotjs,
-  SiExpress,
-  SiMongodb,
-  SiMysql,
-  SiGit,
-  SiGithub,
-  SiDocker,
-} from "react-icons/si";
+import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import Image from "next/image";
 
 type Skill = {
+  id: string;
   name: string;
-  icon: JSX.Element;
+  category: string;
   level: number;
+  icon?: string; // URL from your DB
 };
 
-const skillsData: { category: string; skills: Skill[] }[] = [
-  {
-    category: "Frontend",
-    skills: [
-      { name: "Next.js", icon: <SiNextdotjs />, level: 90 },
-      { name: "React.js", icon: <SiReact />, level: 90 },
-      { name: "TypeScript", icon: <SiTypescript />, level: 85 },
-      { name: "Tailwind CSS", icon: <SiTailwindcss />, level: 90 },
-    ],
+// shimmer animation config
+const shimmerAnimation = {
+  x: ["-100%", "100%"],
+  transition: {
+    repeat: Infinity,
+    duration: 1.2,
+    ease: "linear" as const,
   },
-  {
-    category: "Backend",
-    skills: [
-      { name: "Node.js", icon: <SiNodedotjs />, level: 85 },
-      { name: "Express.js", icon: <SiExpress />, level: 85 },
-    ],
-  },
-  {
-    category: "Databases",
-    skills: [
-      { name: "MongoDB", icon: <SiMongodb />, level: 85 },
-      { name: "MySQL", icon: <SiMysql />, level: 80 },
-    ],
-  },
-  {
-    category: "Tools & DevOps",
-    skills: [
-      { name: "Git", icon: <SiGit />, level: 90 },
-      { name: "GitHub", icon: <SiGithub />, level: 90 },
-      { name: "Docker", icon: <SiDocker />, level: 70 },
-    ],
-  },
-];
+};
 
 export default function Skills() {
+  const [skills, setSkills] = useState<Skill[]>([]);
   const [viewed, setViewed] = useState(false);
+
+  useEffect(() => {
+    async function fetchSkills() {
+      try {
+        const res = await axios.get("/api/skills");
+        setSkills(res.data || []);
+      } catch (err) {
+        console.error("Failed to fetch skills:", err);
+      }
+    }
+    fetchSkills();
+  }, []);
+
+  // group skills by category
+  const grouped = skills.reduce<Record<string, Skill[]>>((acc, skill) => {
+    if (!acc[skill.category]) acc[skill.category] = [];
+    acc[skill.category].push(skill);
+    return acc;
+  }, {});
 
   return (
     <section id="skills" className="max-w-7xl mx-auto px-6 py-20">
@@ -72,9 +59,9 @@ export default function Skills() {
       </motion.h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {skillsData.map((category, idx) => (
+        {Object.entries(grouped).map(([category, skills], idx) => (
           <motion.div
-            key={idx}
+            key={category}
             initial={{ opacity: 0, x: -40 }}
             whileInView={{
               opacity: 1,
@@ -95,78 +82,70 @@ export default function Skills() {
               }}
               viewport={{ once: true }}
             >
-              {category.category}
+              {category}
             </motion.h3>
 
             {/* Skills */}
             <div className="space-y-5">
-              {category.skills.map((skill, i) => {
-                const shimmerControls = useAnimationControls();
-
-                if (viewed) {
-                  shimmerControls.start({
-                    x: ["-100%", "100%"],
-                    transition: {
-                      repeat: Infinity,
-                      duration: 1.2,
-                      ease: "linear",
-                    },
-                  });
-
-                  setTimeout(() => {
-                    shimmerControls.stop();
-                  }, (1 + i * 0.25) * 1000); // matches sequential delay
-                }
-
-                return (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{
-                      opacity: 1,
-                      y: 0,
-                      transition: { duration: 0.4, delay: i * 0.25 },
-                    }}
-                    viewport={{ once: true }}
-                  >
-                    <div className="flex justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-primary text-lg">
-                          {skill.icon}
-                        </span>
-                        <span>{skill.name}</span>
-                      </div>
-                      <span className="text-muted-foreground">
-                        {skill.level}%
-                      </span>
+              {skills.map((skill, i) => (
+                <motion.div
+                  key={skill.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.4, delay: i * 0.25 },
+                  }}
+                  viewport={{ once: true }}
+                >
+                  <div className="flex justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      {skill.icon ? (
+                        <Image
+                          src={skill.icon}
+                          alt={skill.name}
+                          width={20}
+                          height={20}
+                          className="object-contain"
+                          unoptimized = {true}
+                        />
+                      ) : (
+                        <span className="text-primary">⚡</span>
+                      )}
+                      <span>{skill.name}</span>
                     </div>
-                    <div className="w-full bg-secondary h-3 rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full rounded-full relative overflow-hidden"
-                        initial={{ width: 0 }}
-                        animate={{
-                          width: viewed ? `${skill.level}%` : 0,
-                        }}
-                        transition={{
-                          duration: 1,
-                          delay: i * 0.25, // sequential fill
-                        }}
-                        style={{
-                          background:
-                            "linear-gradient(90deg, #3b82f6, #06b6d4, #3b82f6)",
-                          backgroundSize: "200% 100%",
-                        }}
-                      >
-                        {/* Shimmer */}
+                    <span className="text-muted-foreground">
+                      {skill.level}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-secondary h-3 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full rounded-full relative overflow-hidden"
+                      initial={{ width: 0 }}
+                      animate={{
+                        width: viewed ? `${skill.level}%` : 0,
+                      }}
+                      transition={{
+                        duration: 1,
+                        delay: i * 0.25,
+                      }}
+                      style={{
+                        background:
+                          "linear-gradient(180deg, hsl(var(--primary)), hsl(var(--secondary)), hsl(var(--primary)))",
+                        backgroundSize: "200% 100%",
+                      }}
+                    >
+                      {/* shimmer */}
+                      {viewed && (
                         <motion.div
                           className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/50 to-white/10"
-                          animate={shimmerControls}
+                          animate={shimmerAnimation}
                         />
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                      )}
+                    </motion.div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         ))}
