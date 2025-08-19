@@ -114,7 +114,7 @@ Make sure to add all environment variables in the Vercel dashboard.
 
 ## 🔒 Authentication
 
-- Admin access is restricted to the email set in ``.
+- Admin access is restricted to the email set in `ADMIN_EMAIL`.
 - Supports **GitHub** and **Google** login via NextAuth.
 
 ---
@@ -123,7 +123,7 @@ Make sure to add all environment variables in the Vercel dashboard.
 
 - Secured with **Google reCAPTCHA v3**.
 - Emails are sent using **Resend API**.
-- Messages are delivered to the email specified in ``.
+- Messages are delivered to the email specified in `CONTACT_EMAIL`.
 
 ---
 
