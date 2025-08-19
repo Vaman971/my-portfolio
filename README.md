@@ -115,6 +115,7 @@ Make sure to add all environment variables in the Vercel dashboard.
 ## 🔒 Authentication
 
 - Admin access is restricted to the email set in `ADMIN_EMAIL`.
+- Need to manually change the role to admin in MongoDb database.
 - Supports **GitHub** and **Google** login via NextAuth.
 
 ---
