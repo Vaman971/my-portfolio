@@ -51,7 +51,8 @@ It includes a full **Admin Panel** to manage content dynamically — no need to 
 ### 1️⃣ Clone the Repo
 
 ```bash
-git clone https://github.com/your-username/portfolio.git
+git clone https://github.com/Vaman971/my-portfolio.git
+
 cd portfolio
 ```
 
